@@ -49,9 +49,22 @@ scenarios(os.path.join(base_dir, 'feature', 'google_search.feature'))
 
 
 # Step Definitions
-@given(parsers.parse('I {window_Status} the window'))
-@when(parsers.parse('I {window_Status} the window'))
-@then(parsers.parse('I {window_Status} the window'))
+# Windows related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+@given(parsers.parse('I check the Page title is "{title}"'))
+@when(parsers.parse('I check the Page title is "{title}"'))
+@then(parsers.parse('I check the Page title is "{title}"'))
+def go_forward(browser, title):
+    try:
+        page_title = browser.title
+        assert page_title == title
+        print(f"\033[94mThe page Title matched.\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to match the Title. {page_title} => {title} Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I "{window_Status}" the window'))
+@when(parsers.parse('I "{window_Status}" the window'))
+@then(parsers.parse('I "{window_Status}" the window'))
 def set_windows(browser, window_Status):
     try:
         if window_Status == "Maximize":
@@ -76,6 +89,66 @@ def switch_tabs(browser, tab_number):
         print(f"\033[91mSwitch to '{tab_number}'ed\033[37m")
     except Exception as e:
         print(f"\033[91mFailed to switch to {tab_number}. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I switch to "{frame}" frame'))
+@when(parsers.parse('I switch to "{frame}" frame'))
+@then(parsers.parse('I switch to "{frame}" frame'))
+def switch_frame(browser, frame):
+    try:
+        frame_element = browser.browser.find_element(By.CSS_SELECTOR, selectors[frame])
+        browser.switch_to.frame(frame_element)
+    except KeyError:
+        print(f"\033[91mSwitched to '{frame}' frame\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to switch to {frame}. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I switch to frame number {index}'))
+@when(parsers.parse('I switch to frame number {index}'))
+@then(parsers.parse('I switch to frame number {index}'))
+def switch_frame(browser, index):
+    try:
+        browser.switchTo().frame(int(index-1));
+        print(f"\033[91mSwitched to frame number {index}\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to switch to frame number {index}. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I switch to default frame'))
+@when(parsers.parse('I switch to default frame'))
+@then(parsers.parse('I switch to default frame'))
+def switch_default_frame(browser, frame):
+    try:
+        browser.switch_to.default_content()
+        print(f"\033[91mSwitched to default frame\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to switch to default frame. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I check the dementions for the window'))
+@when(parsers.parse('I check the dementions for the window'))
+@then(parsers.parse('I check the dementions for the window'))
+def window_dementions_ckeck(browser):
+    try:
+        width = browser.get_window_size().get("width")
+        height = browser.get_window_size().get("height")
+        print(f"\033[91mCurrent window dementions, Width:{width} Height:{height}\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to switch to default frame. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I want to set the windows size to {width} x {height}'))
+@when(parsers.parse('I want to set the windows size to {width} x {height}'))
+@then(parsers.parse('I want to set the windows size to {width} x {height}'))
+def window_dementions_set(browser, width, height):
+    try:
+        width = int(width)
+        height = int(height)
+        browser.set_window_size(width, height)
+        print(f"\033[91mCurrent window resized, Width:{width} Height:{height}\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to switch to default frame. Error: {str(e)}\033[37m")
 
 
 @given(parsers.parse('I take a screenshot of the window'))
@@ -103,6 +176,20 @@ def capture_screenshot_element(browser,element):
         print(f"\033[91mFailed to capture {element} screenshot. Error: {str(e)}\033[37m")
 
 
+
+@given(parsers.parse('I delete all cookies'))
+@when(parsers.parse('I delete all cookies'))
+@then(parsers.parse('I delete all cookies'))
+def delete_cookiees(browser):
+    try:
+        browser.delete_all_cookies()
+    except KeyError:
+        print(f"\033[91mAll the cookies are deletet\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to delete cookies. Error: {str(e)}\033[37m")
+
+
+# URL Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I go to "{URL}" url'))
 @when(parsers.parse('I go to "{URL}" url'))
 @then(parsers.parse('I go to "{URL}" url'))
@@ -117,7 +204,6 @@ def go_to_google(browser, URL):
         print(f"\033[91mFailed to open {URL}. Error: {str(e)}\033[37m")
 
 
-# Define step to go back to the previously visited page
 @given(parsers.parse('I go back to the Page'))
 @when(parsers.parse('I go back to the Page'))
 @then(parsers.parse('I go back to the Page'))
@@ -129,7 +215,6 @@ def go_back(browser):
         print(f"\033[91mFailed to go back to the page. Error: {str(e)}\033[37m")
 
 
-# Define step to go forward to the next page
 @given(parsers.parse('I go forward to the Page'))
 @when(parsers.parse('I go forward to the Page'))
 @then(parsers.parse('I go forward to the Page'))
@@ -141,7 +226,6 @@ def go_forward(browser):
         print(f"\033[91mFailed to go forward to the page. Error: {str(e)}\033[37m")
 
 
-# Define step to refresh the page
 @given(parsers.parse('I refresh the page'))
 @when(parsers.parse('I refresh the page'))
 @then(parsers.parse('I refresh the page'))
@@ -182,6 +266,106 @@ def wait_seconds(seconds):
     print(f"waited for{seconds} seconds")
 
 
+# Common element Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+@given(parsers.parse('I check the "{element}" element is Displayed'))
+@when(parsers.parse('I check the "{element}" element is Displayed'))
+@then(parsers.parse('I check the "{element}" element is Displayed'))
+def check_is_dispalyed(browser, element):    
+    try:
+        is_email_visible = browser.find_element(By.CSS_SELECTOR, selectors[element]).is_displayed()
+        assert is_email_visible == True
+        print(f"\033[94m'{element} checked with Displayed.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I check the "{element}" element is Enabled'))
+@when(parsers.parse('I check the "{element}" element is Enabled'))
+@then(parsers.parse('I check the "{element}" element is Enabled'))
+def check_is_enabled(browser, element):       
+    try:
+        is_enabled_button = browser.find_element(By.CSS_SELECTOR, selectors[element]).is_enabled()
+        assert is_enabled_button == True
+        print(f"\033[94m'{element} checked with Enabled.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I check the "{element}" element is Selected'))
+@when(parsers.parse('I check the "{element}" element is Selected'))
+@then(parsers.parse('I check the "{element}" element is Selected'))
+def check_is_selected(browser, element):   
+    try:
+        is_selected_check = browser.find_element(By.CSS_SELECTOR, selectors[element]).is_selected()
+        assert is_selected_check == True
+        print(f"\033[94m'{element} checked with Selected.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+# CSS verification related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+@given(parsers.parse('I check the CSS value "{CSS_property}" of the "{element}"  is "{value}"'))
+@when(parsers.parse('I check the CSS value "{CSS_property}" of the "{element}"  is "{value}"'))
+@then(parsers.parse('I check the CSS value "{CSS_property}" of the "{element}"  is "{value}"'))
+def check_CSS_properties(browser, element, CSS_property, value):   
+    try:
+        web_element = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        web_element_info = str(web_element.value_of_css_property(CSS_property))
+        assert web_element_info == str(value)
+        print(f"\033[94m'{element} has the {CSS_property} CSS as {value}.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I check the attribute "{attribute}" of the "{element}"  is "{value}"'))
+@when(parsers.parse('I check the attribute "{attribute}" of the "{element}"  is "{value}"'))
+@then(parsers.parse('I check the attribute "{attribute}" of the "{element}"  is "{value}"'))
+def check_Attribute_values(browser, element, attribute, value):   
+    try:
+        web_element = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        web_element_info = str(web_element.get_attribute(attribute))
+        assert web_element_info == str(value)
+        print(f"\033[94m'{element} has the {attribute} attribure as {value}.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+# Mouse Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I click on "{element}"'))
 @when(parsers.parse('I click on "{element}"'))
 @then(parsers.parse('I click on "{element}"'))
@@ -242,6 +426,7 @@ def double_click_on_element(browser, element):
         assert False, f"WebDriverException: {str(e)}"
 
 
+# Textfield Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I clear the text in the "{element}" textfield'))
 @when(parsers.parse('I clear the text in the "{element}" textfield'))
 @then(parsers.parse('I clear the text in the "{element}" textfield'))
@@ -302,6 +487,7 @@ def type_in_textfield_press_enter(browser,text,element):
         assert False, f"WebDriverException: {str(e)}"
 
 
+# Label Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I check the text in the "{element}" is "{text}"'))
 @when(parsers.parse('I check the text in the "{element}" is "{text}"'))
 @then(parsers.parse('I check the text in the "{element}" is "{text}"'))
@@ -322,6 +508,7 @@ def check_the_text_label(browser, text, element):
         assert False, f"WebDriverException: {str(e)}"
 
 
+# Dropdown Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I select "{option}" from the "{element}" dropdown'))
 @when(parsers.parse('I select "{option}" from the "{element}" dropdown'))
 @then(parsers.parse('I select "{option}" from the "{element}" dropdown'))
@@ -342,13 +529,3 @@ def select_from_dropdown(browser, option, element):
         assert False, f"WebDriverException: {str(e)}"
 
 
-@given(parsers.parse('I check the Page title is "{title}"'))
-@when(parsers.parse('I check the Page title is "{title}"'))
-@then(parsers.parse('I check the Page title is "{title}"'))
-def go_forward(browser, title):
-    try:
-        page_title = browser.title
-        assert page_title == title
-        print(f"\033[94mThe page Title matched.\033[37m")
-    except Exception as e:
-        print(f"\033[91mFailed to match the Title. {page_title} => {title} Error: {str(e)}\033[37m")
