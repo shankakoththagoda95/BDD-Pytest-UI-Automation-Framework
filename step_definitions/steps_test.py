@@ -1,13 +1,18 @@
 import os
 import json
 import pytest
+import time
+import pandas as pd
+from selenium.webdriver.common.action_chains import ActionChains
+from pytest_bdd import scenarios, given, when, then, parsers
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-import time
+from selenium.common.exceptions import *
 from selenium.webdriver.edge.options import Options
-from pytest_bdd import scenarios, given, when, then, parsers
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.keys import Keys
+
 
 
 # Dynamically determine base directory
@@ -42,32 +47,308 @@ def browser():
 # Load scenarios
 scenarios(os.path.join(base_dir, 'feature', 'google_search.feature'))
 
+
 # Step Definitions
+@given(parsers.parse('I {window_Status} the window'))
+@when(parsers.parse('I {window_Status} the window'))
+@then(parsers.parse('I {window_Status} the window'))
+def set_windows(browser, window_Status):
+    try:
+        if window_Status == "Maximize":
+            browser.maximize_window()
+        elif window_Status == "Minimize":
+            browser.minimize_window()
+        elif window_Status == "Fullscreen":
+            browser.fullscreen_window()
+    except KeyError:
+        print(f"\033[91mWindow '{window_Status}'ed\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to {window_Status}. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I switch to {tab_number} tab'))
+@when(parsers.parse('I switch to {tab_number} tab'))
+@then(parsers.parse('I switch to {tab_number} tab'))
+def switch_tabs(browser, tab_number):
+    try:
+        browser.switch_to_tab(int(tab_number))
+    except KeyError:
+        print(f"\033[91mSwitch to '{tab_number}'ed\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to switch to {tab_number}. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I take a screenshot of the window'))
+@when(parsers.parse('I take a screenshot of the window'))
+@then(parsers.parse('I take a screenshot of the window'))
+def capture_screenshot(browser):
+    try:
+        browser.save_screenshot('./image.png')
+    except KeyError:
+        print(f"\033[91mScreenshot Captured\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to capture screenshot. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I take a screenshot of the {element}'))
+@when(parsers.parse('I take a screenshot of the {element}'))
+@then(parsers.parse('I take a screenshot of the {element}'))
+def capture_screenshot_element(browser,element):
+    try:
+        ele = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        ele.screenshot('./image.png')
+    except KeyError:
+        print(f"\033[91m{element} screenshot Captured\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to capture {element} screenshot. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I go to "{URL}" url'))
+@when(parsers.parse('I go to "{URL}" url'))
 @then(parsers.parse('I go to "{URL}" url'))
 def go_to_google(browser, URL):
-    google_url = urls[URL]
-    browser.get(google_url)
-    print("Opened Google URL.")
+    try:
+        google_url = urls[URL]
+        browser.get(google_url)
+        print(f"Opened the {URL} URL.")
+    except KeyError:
+        print(f"\033[91mURL '{URL}' not found in the configuration.\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to open {URL}. Error: {str(e)}\033[37m")
 
+
+# Define step to go back to the previously visited page
+@given(parsers.parse('I go back to the Page'))
+@when(parsers.parse('I go back to the Page'))
+@then(parsers.parse('I go back to the Page'))
+def go_back(browser):
+    try:
+        browser.back()
+        print(f"\033[94mWent to the Previously visited page.\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to go back to the page. Error: {str(e)}\033[37m")
+
+
+# Define step to go forward to the next page
+@given(parsers.parse('I go forward to the Page'))
+@when(parsers.parse('I go forward to the Page'))
+@then(parsers.parse('I go forward to the Page'))
+def go_forward(browser):
+    try:
+        browser.forward()
+        print(f"\033[94mWent Forward to the page.\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to go forward to the page. Error: {str(e)}\033[37m")
+
+
+# Define step to refresh the page
+@given(parsers.parse('I refresh the page'))
+@when(parsers.parse('I refresh the page'))
+@then(parsers.parse('I refresh the page'))
+def go_to_url(browser):
+    try:
+        browser.refresh()
+        print(f"\033[94mPage Refreshed.\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to refresh the page. Error: {str(e)}\033[37m")
+
+
+@given(parsers.parse('I check the ULR of "{URL}" is "{URL_text}"'))
+@when(parsers.parse('I check the ULR of "{URL}" is "{URL_text}"'))
+@then(parsers.parse('I check the ULR of "{URL}" is "{URL_text}"'))
+def check_current_url(browser, URL, URL_text):
+    try:
+        web_url = urls[URL]
+        browser.get(web_url)
+        current_url = browser.current_url
+        assert current_url == URL_text, f"\033[31mExpected URL '{URL_text}', but found '{current_url}'\033[37m"
+        print("\033[94mURL checked with Given URL.\033[37m")
+    except KeyError:
+        print(f"\033[31mURL '{URL}' not found in the URL dictionary.\033[37m")
+        assert False, f"URL '{URL}' is missing in the provided URL dictionary."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"Failed to navigate to URL '{web_url}'. Error: {str(e)}"
+    except AssertionError as ae:
+        print(str(ae))
+        assert False, str(ae)    
+
+
+@given(parsers.parse('I wait for {seconds} Seconds'))
+@when(parsers.parse('I wait for {seconds} Seconds'))
 @then(parsers.parse('I wait for {seconds} Seconds'))
 def wait_seconds(seconds):
     time.sleep(int(seconds))  # Wait for 5 seconds
     print(f"waited for{seconds} seconds")
 
+
+@given(parsers.parse('I click on "{element}"'))
+@when(parsers.parse('I click on "{element}"'))
 @then(parsers.parse('I click on "{element}"'))
-def click_on_search(browser, element):
-    button = browser.find_element(By.CSS_SELECTOR, selectors[element])
-    button.click()
-    print(f"{element} clicked")
+def click_on_button(browser, element):
+    try:
+        button = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        button.click()
+        time.sleep(1)
+        print(f"\033[94m{element} clicked.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
 
+
+@given(parsers.parse('I right-click on "{element}"'))
+@when(parsers.parse('I right-click on "{element}"'))
+@then(parsers.parse('I right-click on "{element}"'))
+def right_click_on_element(browser, element):
+    try:
+        target_element = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        actions = ActionChains(browser)
+        actions.context_click(target_element).perform()
+        print(f"\033[94mRight-click performed on '{element}'.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I double-click on "{element}"'))
+@when(parsers.parse('I double-click on "{element}"'))
+@then(parsers.parse('I double-click on "{element}"'))
+def double_click_on_element(browser, element):
+    try:
+        target_element = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        actions = ActionChains(browser)
+        actions.double_click(target_element).perform()
+        print(f"\033[94mDouble-click performed on '{element}'.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I clear the text in the "{element}" textfield'))
+@when(parsers.parse('I clear the text in the "{element}" textfield'))
+@then(parsers.parse('I clear the text in the "{element}" textfield'))
+def type_in_textfield(browser,element):
+    try:
+        textfield = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        textfield.clear()
+        print(f"\033[94m{element} Cleared.\033[37m")
+
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"        
+
+
+@given(parsers.parse('I type "{text}" in "{element}" textfield'))
+@when(parsers.parse('I type "{text}" in "{element}" textfield'))
 @then(parsers.parse('I type "{text}" in "{element}" textfield'))
-def click_on_search(browser,text,element):
-    textfield = browser.find_element(By.CSS_SELECTOR, selectors[element])
-    textfield.send_keys(text)
-    print(f"{element} populated")
+def type_in_textfield(browser,text,element):
+    try:
+        textfield = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        textfield.send_keys(text)
+        print(f"\033[94m{element} populated.\033[37m")
 
-@then(parsers.parse('I check the text in the "{element}" is"{text}"'))
-def click_on_search(browser,text,element):
-    textfield = browser.find_element(By.CSS_SELECTOR, selectors[element])
-    element_text = textfield.get_text(text)
-    print(f"{element_text} populated")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I type "{text}" in "{element}" textfield and press Enter'))
+@when(parsers.parse('I type "{text}" in "{element}" textfield and press Enter'))
+@then(parsers.parse('I type "{text}" in "{element}" textfield and press Enter'))
+def type_in_textfield_press_enter(browser,text,element):
+    try:
+        textfield = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        textfield.send_keys(text + Keys.ENTER)
+        print(f"\033[94m{element} populated and pressed Enter.\033[37m")
+
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I check the text in the "{element}" is "{text}"'))
+@when(parsers.parse('I check the text in the "{element}" is "{text}"'))
+@then(parsers.parse('I check the text in the "{element}" is "{text}"'))
+def check_the_text_label(browser, text, element):
+    try:
+        textfield = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        element_text = textfield.text
+        print(f"\033[94mThe text in the element '{element}' is '{element_text}'.\033[37m")
+        assert element_text == text, f"\033[31mExpected text '{text}', but found '{element_text}'\033[37m"
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{element}' was found on the page.\033[37m")
+        assert False, f"Element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I select "{option}" from the "{element}" dropdown'))
+@when(parsers.parse('I select "{option}" from the "{element}" dropdown'))
+@then(parsers.parse('I select "{option}" from the "{element}" dropdown'))
+def select_from_dropdown(browser, option, element):
+    try:
+        dropdown = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        select = Select(dropdown)
+        select.select_by_visible_text(option)
+        print(f"\033[94mOption '{option}' selected in the '{element}' dropdown.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such dropdown element '{element}' was found on the page.\033[37m")
+        assert False, f"Dropdown element '{element}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the dropdown element.\033[37m")
+        assert False, f"Timeout while waiting for the dropdown element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I check the Page title is "{title}"'))
+@when(parsers.parse('I check the Page title is "{title}"'))
+@then(parsers.parse('I check the Page title is "{title}"'))
+def go_forward(browser, title):
+    try:
+        page_title = browser.title
+        assert page_title == title
+        print(f"\033[94mThe page Title matched.\033[37m")
+    except Exception as e:
+        print(f"\033[91mFailed to match the Title. {page_title} => {title} Error: {str(e)}\033[37m")
