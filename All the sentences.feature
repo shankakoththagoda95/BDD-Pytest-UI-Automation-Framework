@@ -22,6 +22,8 @@ Scenario: Windows related Sentences
     Then I take a screenshot of the window
     Then I take a screenshot of the {element}
     Then I delete all cookies
+    Then I scroll to the "Top/Bottom" of the page
+    
 
 Scenario: URL related Sentences
     Then I go to "{URL}" url
@@ -41,6 +43,7 @@ Scenario: Mouse related Scentences
     Then I right-click on "{element}"
     Then I double-click on "{element}"
     Then I hover over "{element}"
+    Then I drag and Drop from "{}" to "{}"
 
 Scenario: Textfields related Sentences
     Then I clear the text in the "{element}" textfield
@@ -58,6 +61,8 @@ Scenario: Label related Sentences
 
 Scenario: Dropdown related sentences
     Then I select "{option}" from the "{element}" dropdown
+    Then I verify that the dropdown "{element}" has "{count}" options
+    Then I verify that the dropdown "{element}" has "{option}" option
 
 Scenario: CSS Related verifications
     Then I check the CSS value "{CSS_property}" of the "{element}"  is "{value}"
