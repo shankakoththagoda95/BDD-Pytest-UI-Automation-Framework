@@ -197,6 +197,51 @@ def delete_cookiees(browser):
         print(f"\033[91mFailed to delete cookies. Error: {str(e)}\033[37m")
 
 
+@given(parsers.parse('I scroll to the "{possition}" of the page'))
+@when(parsers.parse('I scroll to the "{possition}" of the page'))
+@then(parsers.parse('I scroll to the "{possition}" of the page'))
+def scroll_to_top(browser, possition):
+    try:
+        if possition.lower() == "top":
+            browser.execute_script("window.scrollTo(0, 0);")
+            print("\033[94mScrolled to the top of the page.\033[37m")
+        elif possition.lower() == "bottom":
+            browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            print("\033[94mScrolled to the bottom of the page.\033[37m")
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"    
+
+
+@given(parsers.parse('I save the HTML of the page as "{file_name}"'))
+@when(parsers.parse('I save the HTML of the page as "{file_name}"'))
+@then(parsers.parse('I save the HTML of the page as "{file_name}"'))
+def save_page_html(browser, file_name):
+    try:
+        page_html = browser.page_source
+        with open(file_name, 'w', encoding='utf-8') as file:
+            file.write(page_html)
+        print(f"\033[94mPage HTML saved as '{file_name}'.\033[37m")
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"   
+
+
+@given(parsers.parse('I save the browser logs as "{file_name}"'))
+@when(parsers.parse('I save the browser logs as "{file_name}"'))
+@then(parsers.parse('I save the browser logs as "{file_name}"'))
+def save_browser_logs(browser, file_name):
+    try:
+        logs = browser.get_log('browser')
+        with open(file_name, 'w', encoding='utf-8') as file:
+            for entry in logs:
+                file.write(f"{entry}\n")
+        print(f"\033[94mBrowser logs saved as '{file_name}'.\033[37m")
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
 # URL Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I go to "{URL}" url'))
 @when(parsers.parse('I go to "{URL}" url'))
@@ -523,6 +568,28 @@ def hover_on_element(browser, element):
         assert False, f"WebDriverException: {str(e)}"
 
 
+@given(parsers.parse('I drag and Drop from "{draggable}" to "{droppable}"'))
+@when(parsers.parse('I drag and Drop from "{draggable}" to "{droppable}"'))
+@then(parsers.parse('I drag and Drop from "{draggable}" to "{droppable}"'))
+def hover_on_element(browser, draggable, droppable):
+    try:
+        draggable_element = browser.find_element(By.CSS_SELECTOR, selectors[draggable])
+        droppable_element = browser.find_element(By.CSS_SELECTOR, selectors[droppable])
+        ActionChains(browser) \
+            .drag_and_drop(draggable_element, droppable_element) \
+            .perform()
+        print(f"\033[94mDraged and Dropped from {draggable} to {droppable}'.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mNo such element '{draggable}' or '{droppable}' was found on the page.\033[37m")
+        assert False, f"Element '{draggable}' or '{droppable}' not found."
+    except TimeoutException:
+        print("\033[31mTimeout while trying to find the element.\033[37m")
+        assert False, f"Timeout while waiting for the element '{draggable}' or '{droppable}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
 # Keyboard Related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I press the "{key}" in the Keyboard'))
 @when(parsers.parse('I press the "{key}" in the Keyboard'))
@@ -733,6 +800,57 @@ def select_from_dropdown(browser, option, element):
     except TimeoutException:
         print("\033[31mTimeout while trying to find the dropdown element.\033[37m")
         assert False, f"Timeout while waiting for the dropdown element '{element}'."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I verify that the dropdown "{element}" has "{count}" options'))
+@when(parsers.parse('I verify that the dropdown "{element}" has "{count}" options'))
+@then(parsers.parse('I verify that the dropdown "{element}" has "{count}" options'))
+def verify_dropdown_options_count(browser, element, count):
+    try:
+        # Locate the dropdown element using its CSS selector
+        dropdown_element = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        
+        # Wrap the element in a Select object to access options
+        select = Select(dropdown_element)
+        actual_count = len(select.options)  # Count the number of options in the dropdown
+        
+        # Convert count to an integer for comparison
+        expected_count = int(count)
+        
+        # Assert the actual count matches the expected count
+        assert actual_count == expected_count, f"Expected {expected_count} options but found {actual_count} in the dropdown '{element}'."
+        print(f"\033[94mDropdown '{element}' has the expected {expected_count} options.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mDropdown element '{element}' was not found.\033[37m")
+        assert False, f"Dropdown element '{element}' not found."
+    except WebDriverException as e:
+        print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
+        assert False, f"WebDriverException: {str(e)}"
+
+
+@given(parsers.parse('I verify that the dropdown "{element}" has "{option}" option'))
+@when(parsers.parse('I verify that the dropdown "{element}" has "{option}" option'))
+@then(parsers.parse('I verify that the dropdown "{element}" has "{option}" option'))
+def verify_dropdown_has_option(browser, element, option):
+    try:
+        # Locate the dropdown element using its CSS selector
+        dropdown_element = browser.find_element(By.CSS_SELECTOR, selectors[element])
+        
+        # Wrap the element in a Select object to access options
+        select = Select(dropdown_element)
+        
+        # Check if the option text exists in the dropdown
+        option_texts = [opt.text for opt in select.options]
+        assert option in option_texts, f"Option '{option}' not found in the dropdown '{element}'. Available options: {option_texts}"
+        
+        # Print success message
+        print(f"\033[94mDropdown '{element}' contains the option '{option}'.\033[37m")
+    except NoSuchElementException:
+        print(f"\033[31mDropdown element '{element}' was not found.\033[37m")
+        assert False, f"Dropdown element '{element}' not found."
     except WebDriverException as e:
         print(f"\033[31mWebDriverException encountered: {str(e)}\033[37m")
         assert False, f"WebDriverException: {str(e)}"
