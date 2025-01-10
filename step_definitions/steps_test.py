@@ -12,6 +12,12 @@ from selenium.common.exceptions import *
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
+from pywinauto.application import Application
+from win32com.client import Dispatch
+import win32com.client
+import pythoncom
+
+
 
 # Dynamically determine base directory
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,7 +51,68 @@ scenarios(os.path.join(base_dir, 'feature', 'google_search.feature'))
 
 
 # Step Definitions
-# Windows related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Step Definitions for Desktop Application automation   ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+@then(parsers.parse('I open the {app_name} application'))
+def open_desktop_application(app_name):
+    # Start Notepad
+    app = Application().start(f"{app_name}.exe")
+    # Find the main window
+    main_window = app.window(title_re=f".*{app_name}.*")
+    time.sleep(2)
+
+@then(parsers.parse('I close the {app_name} application'))
+def close_desktop_application(app_name):
+    # Start Notepad
+    app = Application().connect(title_re=f".*{app_name}.*")
+    # Find the main window
+    app.kill()
+
+@then(parsers.parse('I maximize the {app_name} window'))
+def maximize_window_on_application(app_name):
+    # Maximize the window
+    app = Application().connect(title_re=f".*{app_name}.*")
+    app.window(title_re=f".*{app_name}.*").maximize()
+
+@then(parsers.parse('I minimize the {app_name} window'))
+def minimize_window_on_application(app_name):
+    # Minimize the window
+    app = Application().connect(title_re=f".*{app_name}.*")
+    app.window(title_re=f".*{app_name}.*").minimize()
+
+@then(parsers.parse('I click the "{button_name}" button on {app_name}'))
+def click_button_on_application(button_name, app_name):
+    # Find the button by name and click it
+    app = Application().connect(title_re=f".*{app_name}.*")
+    app.window().child_window(title=button_name, control_type="Button").click()
+
+@then(parsers.parse('I enter "{text}" in the {control_name} text box on {app_name}'))
+def enter_text_in_text_box_on_application(text, control_name, app_name):
+    # Find the text box and enter the text
+    app = Application().connect(title_re=f".*{app_name}.*")
+    app.window().child_window(title=control_name, control_type="Edit").set_text(text)
+
+@then(parsers.parse('I save the file as "{file_name}" in {encoding} encoding on {app_name}'))
+def save_file_as_on_application(file_name, encoding, app_name):
+    # Open Save As dialog and select encoding
+    app = Application().connect(title_re=f".*{app_name}.*")
+    app.window().menu_select("File->Save As")
+    save_as_window = app.window(title="Save As")
+    save_as_window.child_window(title="Encoding", control_type="ComboBox").select(encoding)
+    save_as_window.child_window(control_type="Edit").set_text(file_name)
+    save_as_window.child_window(title="Save", control_type="Button").click()
+
+@then(parsers.parse('I open the file "{file_name}" in {app_name}'))
+def open_file_on_application(file_name, app_name):
+    # Open the Open dialog and select the file
+    app = Application().connect(title_re=f".*{app_name}.*")
+    app.window().menu_select("File->Open")
+    open_window = app.window(title="Open")
+    open_window.child_window(control_type="Edit").set_text(file_name)
+    open_window.child_window(title="Open", control_type="Button").click()
+
+
+
+# Step Definitions for Web windows related Sentences         -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @given(parsers.parse('I check the Page title is "{title}"'))
 @when(parsers.parse('I check the Page title is "{title}"'))
 @then(parsers.parse('I check the Page title is "{title}"'))

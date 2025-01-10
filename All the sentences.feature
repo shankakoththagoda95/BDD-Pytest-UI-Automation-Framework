@@ -1,5 +1,15 @@
 Feature: All the sentences
 
+Scenario: Desktop Application related sentence
+    Then I open the {app_name} application
+    Then I close the {app_name} application
+    Then I maximize the {app_name} window
+    Then I minimize the {app_name} window
+    Then I click the "{button_name}" button on {app_name}
+    Then I enter "{text}" in the {control_name} text box on {app_name}
+    Then I save the file as "{file_name}" in {encoding} encoding on {app_name}
+    Then I open the file "{file_name}" in {app_name}
+
 Scenario: Common Sentences
     Then I wait for {seconds} Seconds
     Then I verify that "{element}" is visible
@@ -9,7 +19,7 @@ Scenario: Common Sentences
     Then I check the "{element}" element is Selected
     Then I check the tag og the "{element}" is "{tag_name}"
 
-Scenario: Windows related Sentences
+Scenario: Web Windows related Sentences
     Then I check the Page title is "{title}"
     Then I "{Maximize/Minimize/Fullscreen}" the window
     Then I check there are no other windows opens
